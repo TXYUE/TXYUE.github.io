@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>圣诞许愿</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 引入EmailJS库用于发送邮件 -->
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        christmas: {
+                            green: '#22c55e',
+                            red: '#ef4444',
+                            gold: '#facc15',
+                            cyan: '#d1fae5', // 淡青色主背景
+                            darkcyan: '#a7f3d0' // 加深版淡青色
+                        }
+                    },
+                    fontFamily: {
+                        christmas: ['Mountains of Christmas', 'cursive', 'sans-serif'],
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- 引入圣诞风格字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&display=swap" rel="stylesheet">
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow-christmas {
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            }
+            .gift-shadow {
+                filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+            }
+            .christmas-border {
+                border-image: linear-gradient(45deg, #ef4444, #facc15, #22c55e) 1;
+            }
+        }
+    </style>
+    <style>
+        body {
+            background-color: #d1fae5;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* 圣诞装饰元素 */
+        .christmas-decoration {
+            position: absolute;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        /* 表单动画效果 */
+        .form-input:focus {
+            transform: scale(1.02);
+            transition: all 0.3s ease;
+        }
+        
+        /* 提交按钮动效 */
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* 加载动画 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 礼物盒动画 */
+        .gift-box {
+            animation: float 3s ease-in-out infinite alternate;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-15px); }
+        }
+        
+        /* 圣诞树动画 */
+        .christmas-tree {
+            animation: sway 4s ease-in-out infinite alternate;
+        }
+        @keyframes sway {
+            0% { transform: rotate(-2deg); }
+            100% { transform: rotate(2deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 overflow-x-hidden">
+    <!-- 左侧圣诞树装饰 -->
+    <div class="christmas-decoration left-4 top-1/4 hidden lg:block christmas-tree">
+        <svg width="180" height="250" viewBox="0 0 180 250" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- 圣诞树主体 -->
+            <path d="M90 20 L30 100 L150 100 L90 20 Z" fill="#22c55e" stroke="#16a34a" stroke-width="2"/>
+            <path d="M90 60 L10 140 L170 140 L90 60 Z" fill="#22c55e" stroke="#16a34a" stroke-width="2"/>
+            <path d="M90 100 L0 180 L180 180 L90 100 Z" fill="#22c55e" stroke="#16a34a" stroke-width="2"/>
+            <!-- 树干 -->
+            <rect x="75" y="180" width="30" height="40" fill="#8b5a2b" stroke="#5c3c17" stroke-width="2"/>
+            <!-- 装饰球 -->
+            <circle cx="60" cy="80" r="8" fill="#ef4444"/>
+            <circle cx="120" cy="110" r="8" fill="#facc15"/>
+            <circle cx="90" cy="140" r="8" fill="#3b82f6"/>
+            <circle cx="45" cy="130" r="8" fill="#ec4899"/>
+            <circle cx="135" cy="70" r="8" fill="#8b5cf6"/>
+            <!-- 星星 -->
+            <path d="M90 25 L95 40 L110 40 L98 50 L102 65 L90 55 L78 65 L82 50 L70 40 L85 40 L90 25 Z" fill="#facc15"/>
+        </svg>
+    </div>
+
+    <!-- 右侧礼物装饰 -->
+    <div class="christmas-decoration right-4 bottom-1/4 hidden lg:block gift-box">
+        <svg width="150" height="180" viewBox="0 0 150 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- 礼物盒 -->
+            <rect x="20" y="50" width="110" height="100" rx="5" fill="#ef4444" stroke="#991b1b" stroke-width="3"/>
+            <!-- 丝带 -->
+            <rect x="70" y="50" width="10" height="100" fill="#facc15" stroke="#b45309" stroke-width="2"/>
+            <rect x="20" y="100" width="110" height="10" fill="#facc15" stroke="#b45309" stroke-width="2"/>
+            <!-- 蝴蝶结 -->
+            <circle cx="75" cy="45" r="15" fill="#facc15" stroke="#b45309" stroke-width="2"/>
+            <ellipse cx="50" cy="45" rx="15" ry="10" fill="#facc15" stroke="#b45309" stroke-width="2"/>
+            <ellipse cx="100" cy="45" rx="15" ry="10" fill="#facc15" stroke="#b45309" stroke-width="2"/>
+            <!-- 装饰 -->
+            <circle cx="50" cy="80" r="6" fill="#ffffff"/>
+            <circle cx="90" cy="120" r="6" fill="#ffffff"/>
+            <circle cx="110" cy="70" r="6" fill="#ffffff"/>
+            <circle cx="40" cy="130" r="6" fill="#ffffff"/>
+        </svg>
+    </div>
+
+    <!-- 移动端顶部装饰 -->
+    <div class="christmas-decoration top-4 left-1/2 transform -translate-x-1/2 lg:hidden">
+        <svg width="120" height="80" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M60 10 L40 40 L80 40 L60 10 Z" fill="#22c55e" stroke="#16a34a" stroke-width="2"/>
+            <circle cx="50" cy="25" r="4" fill="#ef4444"/>
+            <circle cx="70" cy="30" r="4" fill="#facc15"/>
+            <path d="M60 15 L62 22 L68 22 L63 27 L65 32 L60 28 L55 32 L57 27 L52 22 L58 22 L60 15 Z" fill="#facc15"/>
+        </svg>
+    </div>
+
+    <!-- 移动端底部装饰 -->
+    <div class="christmas-decoration bottom-4 left-1/2 transform -translate-x-1/2 lg:hidden">
+        <svg width="100" height="80" viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="15" y="20" width="70" height="50" rx="3" fill="#ef4444" stroke="#991b1b" stroke-width="2"/>
+            <rect x="48" y="20" width="6" height="50" fill="#facc15" stroke="#b45309" stroke-width="1"/>
+            <rect x="15" y="45" width="70" height="6" fill="#facc15" stroke="#b45309" stroke-width="1"/>
+            <circle cx="51" cy="18" r="8" fill="#facc15" stroke="#b45309" stroke-width="1"/>
+        </svg>
+    </div>
+
+    <!-- 主表单容器 -->
+    <div class="relative z-20 w-full max-w-md bg-white/90 rounded-2xl shadow-xl p-8 border-2 border-christmas-gold christmas-border">
+        <!-- 标题 -->
+        <div class="text-center mb-8">
+            <h1 class="font-christmas text-[clamp(2rem,5vw,3rem)] text-christmas-red text-shadow-christmas mb-2">
+                🎄 圣诞许愿🎄
+            </h1>
+            <p class="text-gray-600 italic">
+                
+            </p>
+        </div>
+
+        <!-- 表单 -->
+        <form id="christmasForm" class="space-y-6">
+            <!-- 姓名输入 -->
+            <div class="space-y-2">
+                <label for="name" class="block text-gray-700 font-medium">
+                    <i class="fa fa-user text-christmas-green mr-2"></i>
+                    姓名（可以是姓名的英文首字母）
+                </label>
+                <input 
+                    type="text" 
+                    id="name" 
+                    class="w-full px-4 py-3 rounded-lg border-2 border-christmas-darkcyan focus:border-christmas-gold focus:outline-none form-input transition-all"
+                    placeholder=""
+                    required
+                >
+            </div>
+
+            <!-- 巧克力口味选择 -->
+            <div class="space-y-2">
+                <label for="chocolate" class="block text-gray-700 font-medium">
+                    <i class="fa fa-candy-cane text-christmas-red mr-2"></i>
+                    喜欢什么味道的巧克力
+                </label>
+                <select 
+                    id="chocolate" 
+                    class="w-full px-4 py-3 rounded-lg border-2 border-christmas-darkcyan focus:border-christmas-gold focus:outline-none form-input transition-all"
+                    required
+                >
+                    <option value="" disabled selected>请选择巧克力口味</option>
+                    <option value="薄荷黑巧">薄荷黑巧</option>
+                    <option value="芝士蛋糕味">芝士蛋糕味</option>
+                    <option value="草莓奶油白巧">草莓奶油白巧</option>
+                    <option value="开心果味">开心果味</option>
+                    <option value="提拉米苏味">提拉米苏味</option>
+                </select>
+                <p class="text-sm text-gray-500 italic">可选：薄荷黑巧、芝士蛋糕味、草莓奶油白巧、开心果味、提拉米苏味</p>
+            </div>
+
+            <!-- IP/角色输入 -->
+            <div class="space-y-2">
+                <label for="ip" class="block text-gray-700 font-medium">
+                    <i class="fa fa-gift text-christmas-gold mr-2"></i>
+                    说一个你喜欢的IP吧
+                </label>
+                <textarea 
+                    id="ip" 
+                    class="w-full px-4 py-3 rounded-lg border-2 border-christmas-darkcyan focus:border-christmas-gold focus:outline-none form-input transition-all resize-none h-24"
+                    placeholder=""
+                    required
+                ></textarea>
+                <p class="text-sm text-gray-500 italic">可以具体到某个角色，可能也许不一定……会在某年某月某日某时，有礼物出现</p>
+            </div>
+
+            <!-- 提交按钮 -->
+            <button 
+                type="submit"
+                id="submitBtn"
+                class="w-full py-4 rounded-lg bg-gradient-to-r from-christmas-red to-christmas-green text-white font-bold text-lg submit-btn transition-all shadow-lg hover:shadow-xl"
+            >
+                <i class="fa fa-paper-plane mr-2"></i>
+                提交我的圣诞心愿
+            </button>
+        </form>
+
+        <!-- 提交成功提示 -->
+        <div id="successMessage" class="mt-6 text-center text-christmas-green font-medium hidden">
+            <i class="fa fa-check-circle text-xl mb-2"></i>
+            <p>🎁 祝你圣诞快乐～ 🎁</p>
+        </div>
+
+        <!-- 提交失败提示 -->
+        <div id="errorMessage" class="mt-6 text-center text-red-600 font-medium hidden">
+            <i class="fa fa-exclamation-circle text-xl mb-2"></i>
+            <p>❌ 提交失败，请稍后重试～</p>
+        </div>
+    </div>
+
+    <script>
+        // 初始化EmailJS（需要替换成你自己的API密钥）
+        emailjs.init('h5TQnTDzLu0hS3J2T'); // 这里需要替换为你在EmailJS获取的公钥
+
+        // 表单提交处理
+        document.getElementById('christmasForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const originalBtnText = submitBtn.innerHTML;
+            const successMsg = document.getElementById('successMessage');
+            const errorMsg = document.getElementById('errorMessage');
+            
+            // 禁用按钮并显示加载状态
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading mr-2"></span> 正在提交...';
+            
+            try {
+                // 获取表单数据
+                const formData = {
+                    name: document.getElementById('name').value,
+                    chocolate: document.getElementById('chocolate').value,
+                    ip: document.getElementById('ip').value,
+                    date: new Date().toLocaleString() // 添加提交时间
+                };
+
+                // 发送邮件
+                const response = await emailjs.send(
+                    'service_35azq3i', // 替换为你的EmailJS服务ID
+                    'template_p1czd5m', // 替换为你的EmailJS模板ID
+                    {
+                        to_email: '2949217039@qq.com',
+                        name: formData.name,
+                        chocolate: formData.chocolate,
+                        ip: formData.ip,
+                        date: formData.date
+                    }
+                );
+
+                console.log('邮件发送成功:', response);
+                
+                // 显示成功提示
+                this.classList.add('hidden');
+                errorMsg.classList.add('hidden');
+                successMsg.classList.remove('hidden');
+                
+                // 5秒后重置表单
+                setTimeout(() => {
+                    successMsg.classList.add('hidden');
+                    this.classList.remove('hidden');
+                    this.reset();
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                }, 5000);
+                
+            } catch (error) {
+                console.error('邮件发送失败:', error);
+                
+                // 显示失败提示
+                errorMsg.classList.remove('hidden');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+                
+                // 3秒后隐藏失败提示
+                setTimeout(() => {
+                    errorMsg.classList.add('hidden');
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>

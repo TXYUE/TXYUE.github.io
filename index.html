@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>圣诞快乐</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#22c55e',
+                        secondary: '#f59e0b',
+                        dark: '#0f172a',
+                        light: '#f8fafc'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            .text-shadow-lg {
+                text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
+            .glow {
+                filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
+            }
+            .bg-blur {
+                backdrop-filter: blur(8px);
+            }
+            /* 新增按钮样式 */
+            .wish-game-btn {
+                background-color: #000000;
+                border: 2px solid #facc15;
+                color: #facc15;
+                padding: 8px 16px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 16px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                text-decoration: none;
+                display: inline-block;
+            }
+            .wish-game-btn:hover {
+                background-color: #222222;
+                border-color: #f97316;
+                color: #f97316;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            }
+        }
+    </style>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        /* 新增：左上角按钮容器 */
+        .top-left-buttons {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 20; /* 确保在最上层 */
+            display: flex;
+            gap: 15px;
+        }
+        
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            gap: 10px;
+            padding: 10px 20px;
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .control-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+        
+        .message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 5;
+            text-align: center;
+            pointer-events: none;
+        }
+        
+        .message h1 {
+            font-size: 3rem;
+            color: white;
+            margin-bottom: 1rem;
+            opacity: 0;
+            animation: fadeInOut 4s ease-in-out infinite;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        }
+        
+        .message p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            opacity: 0;
+            animation: fadeInOut 4s ease-in-out infinite 1s;
+        }
+        
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; transform: translateY(20px); }
+            20%, 80% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .snowflake {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.8;
+            animation: fall linear infinite;
+        }
+        
+        @keyframes fall {
+            0% {
+                transform: translateY(-10%);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+        }
+        
+        .star {
+            position: absolute;
+            background: rgba(255, 215, 0, 0.8);
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            animation: twinkle 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes twinkle {
+            from { opacity: 0.6; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1.05); }
+        }
+    </style>
+</head>
+<body class="bg-dark text-light">
+    <!-- 新增：左上角按钮容器 -->
+    <div class="top-left-buttons">
+        <a href="xuyuan.html" class="wish-game-btn">许愿</a>
+        <a href="youxi.html" class="wish-game-btn">游戏</a>
+    </div>
+
+    <!-- 雪花背景 -->
+    <div id="snow-container"></div>
+    
+    <!-- 星星装饰 -->
+    <div id="stars-container"></div>
+    
+    <!-- 画布 -->
+    <canvas id="canvas"></canvas>
+    
+    <!-- 消息显示 -->
+    <div class="message">
+        <h1>Merry Christmas</h1>
+        <p>圣诞快乐！</p>
+    </div>
+    
+    <!-- 控制面板 -->
+    <div class="controls">
+        <button class="control-btn" id="color-btn" title="切换颜色">
+            <i class="fa fa-paint-brush"></i>
+        </button>
+        <button class="control-btn" id="animation-btn" title="切换动画">
+            <i class="fa fa-magic"></i>
+        </button>
+        <button class="control-btn" id="speed-btn" title="调整速度">
+            <i class="fa fa-tachometer"></i>
+        </button>
+        <button class="control-btn" id="reset-btn" title="重置">
+            <i class="fa fa-refresh"></i>
+        </button>
+    </div>
+
+    <script>
+        // 获取画布和上下文
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 设置画布大小
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // 粒子类
+        class Particle {
+            constructor(x, y, targetX, targetY) {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.targetX = targetX;
+                this.targetY = targetY;
+                this.size = Math.random() * 3 + 1;
+                this.speed = Math.random() * 0.5 + 0.1;
+                this.color = this.getRandomColor();
+                this.originalColor = this.color;
+                this.pulse = Math.random();
+                this.pulseSpeed = Math.random() * 0.05 + 0.02;
+                this.attraction = Math.random() * 0.02 + 0.01;
+                this.repulsion = Math.random() * 0.01 + 0.005;
+                this.followingMouse = false;
+            }
+            
+            getRandomColor() {
+                const colors = [
+                    '#22c55e', // 绿色
+                    '#10b981', // 深绿色
+                    '#f59e0b', // 黄色
+                    '#ef4444', // 红色
+                    '#3b82f6', // 蓝色
+                    '#8b5cf6', // 紫色
+                    '#ec4899', // 粉色
+                    '#f97316', // 橙色
+                    '#facc15', // 金色
+                    '#ffffff'  // 白色
+                ];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+            
+            update(mouseX, mouseY) {
+                // 脉冲效果
+                this.pulse += this.pulseSpeed;
+                if (this.pulse > Math.PI * 2) {
+                    this.pulse -= Math.PI * 2;
+                }
+                
+                // 计算到目标位置的距离
+                const dx = this.targetX - this.x;
+                const dy = this.targetY - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // 计算到鼠标的距离
+                const mouseDx = mouseX - this.x;
+                const mouseDy = mouseY - this.y;
+                const mouseDistance = Math.sqrt(mouseDx * mouseDx + mouseDy * mouseDy);
+                
+                // 如果鼠标在附近，粒子会被吸引或排斥
+                if (mouseDistance < 100) {
+                    this.followingMouse = true;
+                    const force = (100 - mouseDistance) / 100 * 0.5;
+                    this.x += (mouseDx / mouseDistance) * force;
+                    this.y += (mouseDy / mouseDistance) * force;
+                } else if (this.followingMouse) {
+                    // 如果鼠标移开，粒子会慢慢回到原位
+                    const returnForce = 0.05;
+                    this.x += dx * returnForce;
+                    this.y += dy * returnForce;
+                    
+                    // 如果足够接近目标位置，停止跟随鼠标
+                    if (distance < 5) {
+                        this.followingMouse = false;
+                    }
+                } else {
+                    // 正常向目标位置移动
+                    if (distance > 1) {
+                        this.x += (dx / distance) * this.speed;
+                        this.y += (dy / distance) * this.speed;
+                    }
+                }
+                
+                // 随机微调，增加自然感
+                this.x += (Math.random() - 0.5) * 0.5;
+                this.y += (Math.random() - 0.5) * 0.5;
+            }
+            
+            draw() {
+                // 绘制粒子
+                const pulseSize = this.size + Math.sin(this.pulse) * 0.5;
+                
+                // 绘制光晕
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, pulseSize * 2, 0, Math.PI * 2);
+                ctx.fillStyle = this.color + '40'; // 添加透明度
+                ctx.fill();
+                
+                // 绘制粒子本身
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, pulseSize, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+            
+            changeColor() {
+                this.color = this.getRandomColor();
+                this.originalColor = this.color;
+            }
+        }
+        
+        // 生成上下翻转且顶端尖锐的圣诞树形状的点
+        function generateChristmasTreePoints(width, height) {
+            const points = [];
+            const centerX = width / 2;
+            const treeHeight = height * 0.7;
+            const treeWidth = treeHeight * 0.6;
+            
+            // 【修改1】树干位置（翻转后在上方）- 保持窄的矩形
+            for (let y = height * 0.2; y < height * 0.3; y += 5) {
+                for (let x = centerX - treeWidth * 0.08; x <= centerX + treeWidth * 0.08; x += 5) {
+                    points.push({ x, y });
+                }
+            }
+            
+            // 【修改2】树叶部分 - 调整为尖锐的锥形（翻转后顶端朝下）
+            // 先添加最顶端的单点（尖点）
+            points.push({ x: centerX, y: height * 0.8 });
+            
+            // 树叶层级 - 从尖点向上逐渐变宽，形成尖锐的锥形
+            for (let level = 0; level < 10; level++) {
+                const levelHeight = treeHeight * 0.8 / 10;
+                // 调整宽度系数，让顶部更尖
+                const levelWidth = treeWidth * (1 - level * 0.12);
+                const startY = height * 0.8 - (level + 1) * levelHeight;
+                
+                // 每层的宽度变化更陡峭，让顶端更尖
+                for (let y = startY; y < startY + levelHeight; y += 3) {
+                    // 使用线性变化而非平方变化，让顶部更尖
+                    const widthRatio = (y - startY) / levelHeight;
+                    const widthAtY = levelWidth * widthRatio;
+                    
+                    // 只保留中心区域的粒子，强化尖顶效果
+                    for (let x = centerX - widthAtY / 2; x <= centerX + widthAtY / 2; x += 3) {
+                        // 增加随机性阈值，减少顶部粒子数量，让尖顶更明显
+                        if (Math.random() > 0.2) {
+                            points.push({ 
+                                x: x + (Math.random() - 0.5) * 2, 
+                                y: y + (Math.random() - 0.5) * 2 
+                            });
+                        }
+                    }
+                }
+            }
+            
+            // 【修改3】树顶星星 - 放在翻转后的尖点位置
+            for (let i = 0; i < 15; i++) {
+                const angle = (Math.PI * 2 / 15) * i;
+                const starX = centerX + Math.cos(angle) * 15;
+                const starY = height * 0.8 + Math.sin(angle) * 15;
+                points.push({ x: starX, y: starY });
+            }
+            
+            return points;
+        }
+        
+        // 创建粒子
+        const points = generateChristmasTreePoints(canvas.width, canvas.height);
+        const particles = points.map(point => new Particle(point.x, point.y, point.x, point.y));
+        
+        // 鼠标位置
+        let mouseX = canvas.width / 2;
+        let mouseY = canvas.height / 2;
+        
+        // 鼠标移动事件
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+        
+        // 触摸事件支持
+        window.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            mouseX = touch.clientX;
+            mouseY = touch.clientY;
+        });
+        
+        // 控制面板功能
+        let animationMode = 0; // 0: 正常, 1: 波动, 2: 闪烁
+        let speedFactor = 1;
+        
+        document.getElementById('color-btn').addEventListener('click', () => {
+            particles.forEach(particle => particle.changeColor());
+        });
+        
+        document.getElementById('animation-btn').addEventListener('click', () => {
+            animationMode = (animationMode + 1) % 3;
+        });
+        
+        document.getElementById('speed-btn').addEventListener('click', () => {
+            speedFactor = (speedFactor === 1) ? 2 : (speedFactor === 2) ? 0.5 : 1;
+        });
+        
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            // 重置所有粒子到初始状态
+            particles.forEach((particle, index) => {
+                particle.x = Math.random() * canvas.width;
+                particle.y = Math.random() * canvas.height;
+                particle.targetX = points[index].x;
+                particle.targetY = points[index].y;
+                particle.speed = Math.random() * 0.5 + 0.1;
+                particle.color = particle.getRandomColor();
+                particle.originalColor = particle.color;
+                particle.followingMouse = false;
+            });
+            
+            animationMode = 0;
+            speedFactor = 1;
+        });
+        
+        // 创建雪花
+        function createSnowflakes() {
+            const snowContainer = document.getElementById('snow-container');
+            const snowflakeCount = 100;
+            
+            for (let i = 0; i < snowflakeCount; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.className = 'snowflake';
+                
+                // 随机大小
+                const size = Math.random() * 5 + 1;
+                snowflake.style.width = `${size}px`;
+                snowflake.style.height = `${size}px`;
+                
+                // 随机位置
+                snowflake.style.left = `${Math.random() * 100}vw`;
+                snowflake.style.top = `-${size}px`;
+                
+                // 随机动画持续时间和延迟
+                const duration = Math.random() * 10 + 10;
+                const delay = Math.random() * 10;
+                snowflake.style.animationDuration = `${duration}s`;
+                snowflake.style.animationDelay = `${delay}s`;
+                
+                // 随机水平移动
+                const horizontalMovement = Math.random() * 100 - 50;
+                snowflake.style.setProperty('--horizontal-movement', `${horizontalMovement}px`);
+                snowflake.style.animationName = 'fall';
+                
+                snowContainer.appendChild(snowflake);
+            }
+        }
+        
+        // 创建星星背景
+        function createStars() {
+            const starsContainer = document.getElementById('stars-container');
+            const starCount = 150;
+            
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                
+                // 随机大小
+                const size = Math.random() * 4 + 1;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                
+                // 随机位置
+                star.style.left = `${Math.random() * 100}vw`;
+                star.style.top = `${Math.random() * 70}vh`; // 只在画布上半部分显示星星
+                
+                // 随机动画延迟
+                const delay = Math.random() * 5;
+                star.style.animationDelay = `${delay}s`;
+                
+                starsContainer.appendChild(star);
+            }
+        }
+        
+        // 初始化
+        createSnowflakes();
+        createStars();
+        
+        // 动画循环
+        let time = 0;
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            time += 0.01 * speedFactor;
+            
+            // 更新和绘制粒子
+            particles.forEach((particle, index) => {
+                // 根据动画模式调整粒子
+                if (animationMode === 1) {
+                    // 波动模式
+                    const offset = Math.sin(time + index * 0.01) * 10;
+                    particle.targetX = points[index].x + offset;
+                    particle.targetY = points[index].y + offset;
+                } else if (animationMode === 2) {
+                    // 闪烁模式
+                    if (Math.random() > 0.98) {
+                        particle.changeColor();
+                    }
+                }
+                
+                particle.update(mouseX, mouseY);
+                particle.draw();
+            });
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // 开始动画
+        animate();
+        
+        // 添加点击效果
+        canvas.addEventListener('click', (e) => {
+            // 创建点击爆炸效果
+            const clickX = e.clientX;
+            const clickY = e.clientY;
+            
+            for (let i = 0; i < 20; i++) {
+                const particle = new Particle(clickX, clickY, clickX, clickY);
+                particle.speed = Math.random() * 3 + 1;
+                
+                // 向四周扩散
+                const angle = (Math.PI * 2 / 20) * i;
+                particle.targetX = clickX + Math.cos(angle) * 100;
+                particle.targetY = clickY + Math.sin(angle) * 100;
+                
+                // 添加到粒子数组
+                particles.push(particle);
+                
+                // 设置定时器，一段时间后移除这些粒子
+                setTimeout(() => {
+                    const index = particles.indexOf(particle);
+                    if (index > -1) {
+                        particles.splice(index, 1);
+                    }
+                }, 2000);
+            }
+        });
+    </script>
+</body>
+</html>
